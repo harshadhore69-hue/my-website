@@ -84,9 +84,142 @@
     .slide { height:auto; page-break-after:always; content-visibility:visible; }
     .slide svg { width:100%; height:auto; }
   }
+
+  /* ================= PROJECT HEADER NAVIGATION ================= */
+  :root { --pnav-h:64px; --pn-ink:#1B3914; --pn-mint:#EFFFDD; --pn-lime:#C8FF3C; --pn-green:#4C9F38; --pn-line:rgba(27,57,20,.14); }
+  .pnav {
+    position:sticky; top:0; z-index:30; height:var(--pnav-h);
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    padding:0 clamp(14px, 3vw, 40px);
+    font:500 14px/1 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color:var(--pn-ink); background:rgba(239,255,221,.9);
+    -webkit-backdrop-filter:blur(16px) saturate(1.2); backdrop-filter:blur(16px) saturate(1.2);
+    border-bottom:1px solid var(--pn-line); box-sizing:border-box;
+  }
+  .pnav *, .pnav *::before, .pnav *::after { box-sizing:border-box; }
+  .pnav button { font:inherit; cursor:pointer; }
+  .pnav-left { display:flex; align-items:center; gap:14px; min-width:0; }
+  .pnav-right { display:flex; align-items:center; gap:10px; }
+  .pnav-back {
+    flex:none; display:inline-flex; align-items:center; gap:8px; padding:5px 15px 5px 5px;
+    color:var(--pn-ink); text-decoration:none; font-size:13px; font-weight:700;
+    background:#fff; border:1px solid var(--pn-line); border-radius:999px;
+    transition:border-color .2s ease, box-shadow .2s ease;
+  }
+  .pnav-back-ic { display:grid; place-items:center; width:28px; height:28px; border-radius:50%; color:var(--pn-lime); background:var(--pn-ink); transition:transform .2s ease; }
+  .pnav-back-ic svg { width:14px; height:14px; }
+  .pnav-back:hover, .pnav-back:focus-visible { border-color:var(--pn-ink); box-shadow:0 6px 18px rgba(27,57,20,.12); }
+  .pnav-back:hover .pnav-back-ic, .pnav-back:focus-visible .pnav-back-ic { transform:translateX(-2px); }
+  .pnav-sep { flex:none; width:1px; height:28px; background:var(--pn-line); }
+  .pnav-title { display:flex; align-items:center; gap:10px; min-width:0; color:inherit; text-decoration:none; }
+  .pnav-mark { flex:none; display:grid; place-items:center; width:34px; height:34px; border-radius:10px; color:var(--pn-ink); background:var(--pn-lime); font-size:12px; font-weight:800; letter-spacing:-.02em; }
+  .pnav-title-tx { display:flex; flex-direction:column; gap:3px; min-width:0; line-height:1.15; }
+  .pnav-kicker { font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--pn-green); white-space:nowrap; }
+  .pnav-name { font-size:15px; font-weight:800; letter-spacing:-.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  /* slide controls */
+  .pnav-slides { display:flex; align-items:center; gap:2px; padding:3px; background:#fff; border:1px solid var(--pn-line); border-radius:999px; }
+  .pnav-step { display:grid; place-items:center; width:32px; height:32px; padding:0; color:var(--pn-ink); background:transparent; border:0; border-radius:50%; transition:background .2s ease, opacity .2s ease; }
+  .pnav-step svg { width:14px; height:14px; }
+  .pnav-step:hover:not(:disabled), .pnav-step:focus-visible { background:var(--pn-mint); }
+  .pnav-step:disabled { opacity:.3; cursor:default; }
+  .pnav-slides .pnav-dd-btn { gap:6px; padding:8px 10px; font-variant-numeric:tabular-nums; font-size:12.5px; font-weight:800; }
+  .pnav-count-of { color:rgba(27,57,20,.5); font-weight:600; }
+  .pnav-dd-menu.pnav-grid { width:300px; }
+  .pnav-grid-list { display:grid; grid-template-columns:repeat(6, 1fr); gap:6px; padding:2px; }
+  .pnav-grid-list a { display:grid; place-items:center; height:36px; color:var(--pn-ink); background:var(--pn-mint); border:1px solid transparent; border-radius:9px; font-size:12px; font-weight:700; text-decoration:none; transition:background .15s ease, border-color .15s ease; }
+  .pnav-grid-list a:hover, .pnav-grid-list a:focus-visible { border-color:var(--pn-ink); }
+  .pnav-grid-list a.is-active { color:var(--pn-lime); background:var(--pn-ink); }
+
+  /* links + dropdowns */
+  .pnav-links { display:flex; align-items:center; gap:2px; }
+  .pnav-links > a, .pnav-dd-btn {
+    display:inline-flex; align-items:center; gap:6px; padding:9px 12px;
+    color:rgba(27,57,20,.72); background:transparent; border:0; border-radius:999px;
+    font-size:14px; font-weight:600; text-decoration:none; line-height:1;
+    transition:color .2s ease, background .2s ease;
+  }
+  .pnav-links > a:hover, .pnav-links > a:focus-visible, .pnav-dd-btn:hover, .pnav-dd-btn:focus-visible, .pnav-dd.is-open > .pnav-dd-btn { color:var(--pn-ink); background:rgba(27,57,20,.07); }
+  .pnav-slides .pnav-dd-btn { color:var(--pn-ink); }
+  .pnav-dd-btn svg { width:10px; height:10px; transition:transform .2s ease; }
+  .pnav-dd.is-open > .pnav-dd-btn svg { transform:rotate(180deg); }
+  .pnav-links > a.pnav-cta { margin-left:6px; padding:11px 18px; color:var(--pn-lime); background:var(--pn-ink); font-size:13px; font-weight:700; }
+  .pnav-links > a.pnav-cta:hover, .pnav-links > a.pnav-cta:focus-visible { color:var(--pn-ink); background:var(--pn-lime); }
+  .pnav-dd { position:relative; }
+  .pnav-dd-menu {
+    position:absolute; top:calc(100% + 12px); right:0; width:320px; padding:8px;
+    background:#fff; border:1px solid var(--pn-line); border-radius:18px;
+    box-shadow:0 22px 50px rgba(27,57,20,.16);
+    opacity:0; visibility:hidden; transform:translateY(-6px);
+    transition:opacity .2s ease, transform .2s ease, visibility .2s ease;
+  }
+  .pnav-dd.is-open > .pnav-dd-menu { opacity:1; visibility:visible; transform:none; }
+  .pnav-dd-label { margin:0; padding:8px 10px 8px; color:rgba(27,57,20,.55); font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; line-height:1; }
+  .pnav-proj { display:flex; align-items:center; gap:12px; padding:10px; color:var(--pn-ink); text-decoration:none; border-radius:12px; transition:background .2s ease; }
+  .pnav-proj:hover, .pnav-proj:focus-visible, .pnav-proj[aria-current] { background:var(--pn-mint); }
+  .pnav-proj-n { flex:none; display:grid; place-items:center; width:30px; height:30px; color:rgba(27,57,20,.7); background:#fff; border:1px solid var(--pn-line); border-radius:50%; font-size:11px; font-weight:800; }
+  .pnav-proj[aria-current] .pnav-proj-n { color:var(--pn-lime); background:var(--pn-ink); border-color:var(--pn-ink); }
+  .pnav-proj-t { display:flex; flex-direction:column; gap:3px; font-size:13.5px; font-weight:700; line-height:1.25; }
+  .pnav-proj-t small { color:rgba(27,57,20,.6); font-size:11.5px; font-weight:500; }
+  .pnav-here { margin-left:auto; color:var(--pn-green); font-size:9.5px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+  .pnav-burger { display:none; flex:none; flex-direction:column; align-items:center; justify-content:center; gap:4px; width:40px; height:40px; padding:0; background:#fff; border:1px solid var(--pn-line); border-radius:50%; }
+  .pnav-burger span { display:block; width:15px; height:1.6px; background:var(--pn-ink); border-radius:2px; transition:transform .25s ease, opacity .2s ease; }
+  .pnav.is-menu-open .pnav-burger span:nth-child(1) { transform:translateY(5.6px) rotate(45deg); }
+  .pnav.is-menu-open .pnav-burger span:nth-child(2) { opacity:0; }
+  .pnav.is-menu-open .pnav-burger span:nth-child(3) { transform:translateY(-5.6px) rotate(-45deg); }
+  .pnav :focus-visible { outline:2px solid var(--pn-green); outline-offset:2px; }
+
+  /* keep slide anchors clear of the sticky header on desktop */
+  .slide { scroll-margin-top:var(--pnav-h); }
+
+  @media (max-width: 1180px) {
+    .pnav-burger { display:flex; }
+    .pnav-links {
+      display:none; position:absolute; top:100%; left:0; right:0;
+      flex-direction:column; align-items:stretch; gap:2px;
+      max-height:calc(100vh - var(--pnav-h)); overflow-y:auto;
+      padding:12px clamp(14px, 3vw, 40px) 22px; background:#F1FFE2;
+      border-bottom:1px solid var(--pn-line); box-shadow:0 22px 40px rgba(27,57,20,.14);
+    }
+    .pnav.is-menu-open .pnav-links { display:flex; }
+    .pnav-links > a { padding:14px; font-size:15px; border-radius:12px; }
+    .pnav-links .pnav-dd-btn { pointer-events:none; padding:16px 14px 4px; color:rgba(27,57,20,.55); font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; background:none !important; }
+    .pnav-links .pnav-dd-btn svg, .pnav-links .pnav-dd-label { display:none; }
+    .pnav-links .pnav-dd-menu { position:static; width:auto; padding:0; opacity:1; visibility:visible; transform:none; background:none; border:0; box-shadow:none; }
+    .pnav-links .pnav-proj[aria-current], .pnav-links .pnav-proj:hover { background:rgba(255,255,255,.7); }
+    .pnav-links > a.pnav-cta { margin:12px 0 0; justify-content:center; }
+  }
+  @media (max-width: 1024px) {
+    :root { --pnav-h:58px; }
+    /* mobile/tablet viewer: deck fills the space below the header */
+    .deck { height:calc(100vh - var(--pnav-h)); height:calc(100svh - var(--pnav-h)); }
+    .slide { height:calc(100vh - var(--pnav-h)); height:calc(100svh - var(--pnav-h)); contain-intrinsic-size:auto calc(100vh - var(--pnav-h)); scroll-margin-top:0; }
+  }
+  @media (max-width: 760px) {
+    .pnav { gap:8px; }
+    .pnav-left { gap:10px; }
+    .pnav-right { gap:6px; }
+    .pnav-back { padding:4px; }
+    .pnav-back-tx, .pnav-sep, .pnav-kicker { display:none; }
+    .pnav-name { font-size:14px; }
+    .pnav-step { width:28px; height:28px; }
+    .pnav-slides .pnav-dd-btn { padding:7px 6px; font-size:12px; }
+    .pnav-slides .pnav-dd-btn svg { display:none; }
+    .pnav-dd-menu.pnav-grid { position:fixed; top:calc(var(--pnav-h) + 8px); left:12px; right:12px; width:auto; }
+  }
+  @media (max-width: 520px) {
+    .pnav-title-tx { display:none; }
+  }
+  @media (max-width: 360px) {
+    .pnav-mark { display:none; }
+  }
+  @media print { .pnav { display:none !important; } }
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
+<header class="pnav" data-pnav aria-label="Project navigation"><div class="pnav-left"><a class="pnav-back" href="index.html" aria-label="Back to portfolio home"><span class="pnav-back-ic"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13 8H3m0 0 4.5-4.5M3 8l4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="pnav-back-tx">Back</span></a><span class="pnav-sep" aria-hidden="true"></span><a class="pnav-title" href="#slide-1" aria-label="Medical Adherence — back to the cover"><span class="pnav-mark" aria-hidden="true">MA</span><span class="pnav-title-tx"><span class="pnav-kicker">Case Study 03 · Design Probe</span><span class="pnav-name">Medical Adherence</span></span></a></div><div class="pnav-right"><div class="pnav-slides" role="group" aria-label="Slide navigation"><button class="pnav-step" type="button" data-step="-1" aria-label="Previous slide"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 3.5 5.5 8l4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="pnav-dd pnav-dd--slides"><button class="pnav-dd-btn" type="button" aria-expanded="false" aria-controls="pnavSlideGrid" aria-label="Jump to a slide"><span class="pnav-count">01</span><span class="pnav-count-of">/ 30</span><svg viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="m2 3.5 3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="pnav-dd-menu pnav-grid" id="pnavSlideGrid"><p class="pnav-dd-label">Jump to a slide</p><div class="pnav-grid-list"><a href="#slide-1" data-target="slide-1" aria-label="Go to slide 1">01</a><a href="#slide-2" data-target="slide-2" aria-label="Go to slide 2">02</a><a href="#slide-3" data-target="slide-3" aria-label="Go to slide 3">03</a><a href="#slide-4" data-target="slide-4" aria-label="Go to slide 4">04</a><a href="#slide-5" data-target="slide-5" aria-label="Go to slide 5">05</a><a href="#slide-6" data-target="slide-6" aria-label="Go to slide 6">06</a><a href="#slide-7" data-target="slide-7" aria-label="Go to slide 7">07</a><a href="#slide-8" data-target="slide-8" aria-label="Go to slide 8">08</a><a href="#slide-9" data-target="slide-9" aria-label="Go to slide 9">09</a><a href="#slide-10" data-target="slide-10" aria-label="Go to slide 10">10</a><a href="#slide-11" data-target="slide-11" aria-label="Go to slide 11">11</a><a href="#slide-12" data-target="slide-12" aria-label="Go to slide 12">12</a><a href="#slide-13" data-target="slide-13" aria-label="Go to slide 13">13</a><a href="#slide-14" data-target="slide-14" aria-label="Go to slide 14">14</a><a href="#slide-15" data-target="slide-15" aria-label="Go to slide 15">15</a><a href="#slide-16" data-target="slide-16" aria-label="Go to slide 16">16</a><a href="#slide-17" data-target="slide-17" aria-label="Go to slide 17">17</a><a href="#slide-18" data-target="slide-18" aria-label="Go to slide 18">18</a><a href="#slide-19" data-target="slide-19" aria-label="Go to slide 19">19</a><a href="#slide-20" data-target="slide-20" aria-label="Go to slide 20">20</a><a href="#slide-21" data-target="slide-21" aria-label="Go to slide 21">21</a><a href="#slide-22" data-target="slide-22" aria-label="Go to slide 22">22</a><a href="#slide-23" data-target="slide-23" aria-label="Go to slide 23">23</a><a href="#slide-24" data-target="slide-24" aria-label="Go to slide 24">24</a><a href="#slide-25" data-target="slide-25" aria-label="Go to slide 25">25</a><a href="#slide-26" data-target="slide-26" aria-label="Go to slide 26">26</a><a href="#slide-27" data-target="slide-27" aria-label="Go to slide 27">27</a><a href="#slide-28" data-target="slide-28" aria-label="Go to slide 28">28</a><a href="#slide-29" data-target="slide-29" aria-label="Go to slide 29">29</a><a href="#slide-30" data-target="slide-30" aria-label="Go to slide 30">30</a></div></div></div><button class="pnav-step" type="button" data-step="1" aria-label="Next slide"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m6 3.5 4.5 4.5L6 12.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><nav aria-label="Site navigation"><div class="pnav-links" id="pnavLinks"><a href="index.html#work">Work</a><a href="index.html#about">About</a><div class="pnav-dd pnav-dd--projects"><button class="pnav-dd-btn" type="button" aria-expanded="false" aria-controls="pnavProjects">Projects <svg viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="m2 3.5 3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="pnav-dd-menu" id="pnavProjects"><p class="pnav-dd-label">Case studies</p><a class="pnav-proj" href="MBG_index.html"><span class="pnav-proj-n">01</span><span class="pnav-proj-t">Pragati — Mahila Bachat Gat<small>Behavioural Design</small></span></a><a class="pnav-proj" href="StrategicUX_index.html"><span class="pnav-proj-n">02</span><span class="pnav-proj-t">Food Delivery: Waiting Anxiety<small>Strategic UX</small></span></a><a class="pnav-proj" href="MedicalAdher_index.html" aria-current="page"><span class="pnav-proj-n">03</span><span class="pnav-proj-t">Medical Adherence<small>Design Probe</small></span><span class="pnav-here">Viewing</span></a></div></div><a href="index.html#contact" class="pnav-cta">Get in touch</a></div></nav><button class="pnav-burger" type="button" aria-expanded="false" aria-controls="pnavLinks" aria-label="Open menu"><span></span><span></span><span></span></button></div></header>
 
 <div class="deck" id="deck">
 <div class="slide" id="slide-1" style="--sbg:#EFFFDD">
@@ -4611,5 +4744,97 @@
 <div id="hud">1 / 30</div>
 <div id="hint">Swipe to navigate · Pinch or double-tap to zoom</div>
 
+<script>
+/* Project header navigation: back link, projects menu, mobile menu (independent of the page's own scripts) */
+(() => {
+  const nav = document.querySelector('[data-pnav]');
+  if (!nav) return;
+  const burger = nav.querySelector('.pnav-burger');
+  const dds = [...nav.querySelectorAll('.pnav-dd')];
+  const closeDDs = (except) => dds.forEach((d) => {
+    if (d === except) return;
+    d.classList.remove('is-open');
+    const b = d.querySelector('.pnav-dd-btn');
+    if (b) b.setAttribute('aria-expanded', 'false');
+  });
+  const setMenu = (open) => {
+    nav.classList.toggle('is-menu-open', open);
+    if (burger) {
+      burger.setAttribute('aria-expanded', String(open));
+      burger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    }
+  };
+  if (burger) burger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeDDs();
+    setMenu(!nav.classList.contains('is-menu-open'));
+  });
+  dds.forEach((d) => {
+    const b = d.querySelector('.pnav-dd-btn');
+    if (!b) return;
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = !d.classList.contains('is-open');
+      closeDDs(d);
+      d.classList.toggle('is-open', open);
+      b.setAttribute('aria-expanded', String(open));
+    });
+  });
+  nav.addEventListener('click', (e) => {
+    if (e.target.closest('a')) { closeDDs(); setMenu(false); }
+  });
+  document.addEventListener('click', (e) => {
+    if (!nav.contains(e.target)) { closeDDs(); setMenu(false); }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { closeDDs(); setMenu(false); }
+  });
+  window.addEventListener('resize', () => setMenu(false), { passive: true });
+})();
+</script>
+<script>
+/* Header slide controls: current slide counter, prev / next, jump grid */
+(() => {
+  const slides = [...document.querySelectorAll('.deck > .slide')];
+  const nav = document.querySelector('[data-pnav]');
+  if (!slides.length || !nav) return;
+  const countEl = nav.querySelector('.pnav-count');
+  const prevBtn = nav.querySelector('.pnav-step[data-step="-1"]');
+  const nextBtn = nav.querySelector('.pnav-step[data-step="1"]');
+  const gridLinks = [...nav.querySelectorAll('.pnav-grid-list a')];
+  let current = 0;
+  const pad = (n) => String(n).padStart(2, '0');
+  function setCurrent(i) {
+    current = i;
+    countEl.textContent = pad(i + 1);
+    prevBtn.disabled = i === 0;
+    nextBtn.disabled = i === slides.length - 1;
+    gridLinks.forEach((a, k) => {
+      a.classList.toggle('is-active', k === i);
+      if (k === i) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
+    });
+  }
+  // slide crossing the middle of the screen = current slide (works for page scroll and the mobile deck)
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((en) => { if (en.isIntersecting) setCurrent(slides.indexOf(en.target)); });
+  }, { rootMargin: '-50% 0px -50% 0px', threshold: 0 });
+  slides.forEach((sl) => io.observe(sl));
+  // slides use content-visibility, so re-align a couple of times after jumping
+  function goTo(i) {
+    const el = slides[Math.max(0, Math.min(slides.length - 1, i))];
+    el.scrollIntoView({ block: 'start' });
+    let n = 0;
+    const fix = () => { el.scrollIntoView({ block: 'start' }); if (++n < 3) requestAnimationFrame(fix); };
+    requestAnimationFrame(fix);
+    if (history.replaceState) history.replaceState(null, '', '#' + el.id);
+  }
+  prevBtn.addEventListener('click', () => goTo(current - 1));
+  nextBtn.addEventListener('click', () => goTo(current + 1));
+  gridLinks.forEach((a, k) => a.addEventListener('click', (e) => { e.preventDefault(); goTo(k); }));
+  const title = nav.querySelector('.pnav-title');
+  if (title) title.addEventListener('click', (e) => { e.preventDefault(); goTo(0); });
+  setCurrent(0);
+})();
+</script>
 </body>
 </html>
