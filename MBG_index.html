@@ -85,6 +85,14 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--paper);color:var(
 footer{padding:28px 0;text-align:center;font-size:13px;color:var(--muted);border-top:1px solid var(--line);background:#faf9f6;line-height:1.6}
 .back-top{position:fixed;bottom:20px;right:20px;background:var(--ink);color:#fff;border:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;cursor:pointer;opacity:0;pointer-events:none;transition:.3s;z-index:80}
 .back-top.show{opacity:1;pointer-events:auto}
+
+/* ===== slide rail: keep the active pill scrolled into view ===== */
+.toc .wrap{scrollbar-width:none;-ms-overflow-style:none;scroll-behavior:smooth;overscroll-behavior-x:contain}
+.toc .wrap::-webkit-scrollbar{display:none}
+.toc a{flex:none}
+.toc a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.slide-sec{scroll-margin-top:calc(var(--nav-h) + 74px)}
+@media print{.toc{display:none}}
 </style>
 </head>
 <body>
@@ -7970,9 +7978,7 @@ const prog=document.getElementById('prog');
 addEventListener('scroll',()=>{const h=document.documentElement;prog.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';document.getElementById('backTop').classList.toggle('show',h.scrollTop>800);},{passive:true});
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.08});
 document.querySelectorAll('.rv').forEach(el=>io.observe(el));
-const secs=[...document.querySelectorAll('.slide-sec')];const links=[...document.querySelectorAll('.toc a')];
-const tio=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting){const id=en.target.id;links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+id))}})},{threshold:.5});
-secs.forEach(s=>tio.observe(s));
+/* active-slide tracking now lives in the shared slide rail script below */
 document.getElementById('backTop').addEventListener('click',()=>scrollTo({top:0,behavior:'smooth'}));
 (function(){if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;if(matchMedia('(hover: none)').matches) return;const layer=document.getElementById('glitter');const COL=['#ff4d17','#ffb02e','#ffd966','#f2879a','#fff4d6','#e8447a'];const R=(a,b)=>a+Math.random()*(b-a);function shape(c,s){return `<svg width="${s}" height="${s}" viewBox="0 0 24 24"><path d="M12 0c.7 6.4 4.9 10.6 12 12-7.1 1.4-11.3 5.6-12 12-.7-6.4-4.9-10.6-12-12C7.1 10.6 11.3 6.4 12 0z" fill="${c}"/></svg>`}let last=0,lx=0,ly=0,alive=0;const MAX=80;function spawn(x,y){if(alive>MAX) return;const p=document.createElement('div');p.className='gp';const c=COL[(Math.random()*COL.length)|0];const sz=R(7,14);p.innerHTML=shape(c,sz);p.style.left=(x+R(-6,6))+'px';p.style.top=(y+R(-6,6))+'px';p.style.setProperty('--dx',R(-40,40)+'px');p.style.setProperty('--dy',R(-35,10)+'px');p.style.setProperty('--grav',R(30,65)+'px');p.style.setProperty('--life',R(800,1400)+'ms');layer.appendChild(p);alive++;setTimeout(()=>{p.remove();alive--},1400);}addEventListener('pointermove',e=>{if(e.pointerType!=='mouse')return;const d=Math.hypot(e.clientX-lx,e.clientY-ly);const now=performance.now();if(d>16&&now-last>28){spawn(e.clientX,e.clientY);last=now;lx=e.clientX;ly=e.clientY}},{passive:true});})();
 </script>
@@ -8023,6 +8029,187 @@ document.getElementById('backTop').addEventListener('click',()=>scrollTo({top:0,
   });
   window.addEventListener('resize', () => setMenu(false), { passive: true });
 })();
+</script>
+<script>
+/* =====================================================================
+   Slide rail — scroll-driven slide indicator
+   Shared by MBG / Medical Adherence / Food Delivery case studies.
+
+   Why this exists: the old version asked an IntersectionObserver for
+   "the slide that is >= 50% visible". A slide that is taller than twice
+   the viewport can never reach that, and a fast trackpad flick carries a
+   slide straight past the threshold between two callbacks — so the
+   indicator skipped slides, fired out of order, and then froze.
+
+   This version computes the current slide from geometry on every scroll
+   frame: the slide that owns a reference line just under the sticky bar.
+   It is height-agnostic and speed-agnostic, so it cannot get stuck.
+   It also keeps the active pill scrolled into view inside the strip.
+   ===================================================================== */
+(() => {
+  'use strict';
+
+  /* ---- 1. find the slides ------------------------------------------ */
+  const candidates = ['.slide-sec', '.deck > .slide', 'figure.slide[data-slide]', '.slide[data-slide]'];
+  let slides = [];
+  for (const sel of candidates) {
+    const found = Array.prototype.slice.call(document.querySelectorAll(sel));
+    if (found.length > 1) { slides = found; break; }
+  }
+  if (slides.length < 2) return;
+
+  const pad2 = (n) => String(n).padStart(2, '0');
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const motion = reduced ? 'auto' : 'smooth';
+
+  /* ---- 2. the strip: reuse an authored one, else build it ---------- */
+  const info = (el, i) => {
+    // MBG stamps "01 — Cover" on the artwork
+    const chip = el.querySelector('.slide-num');
+    if (chip) {
+      const bits = chip.textContent.split('\u2014');
+      return { num: (bits[0] || pad2(i + 1)).trim(), name: (bits[1] || '').trim() };
+    }
+    // Food Delivery labels the frame: "Cover: Food Delivery — Waiting Anxiety"
+    const frame = el.querySelector('[aria-label]');
+    const raw = frame ? (frame.getAttribute('aria-label') || '') : '';
+    const name = raw.indexOf(':') > 0 && raw.indexOf(':') < 26 ? raw.slice(raw.indexOf(':') + 1).trim() : '';
+    const n = Number(el.dataset.slide);
+    return { num: pad2(Number.isFinite(n) && n > 0 ? n : i + 1), name };
+  };
+
+  let strip = document.querySelector('.toc .wrap');
+  let links;
+
+  if (strip && strip.querySelectorAll('a').length === slides.length) {
+    links = Array.prototype.slice.call(strip.querySelectorAll('a'));
+  } else {
+    const rail = document.createElement('nav');
+    rail.className = 'sld-rail';
+    rail.setAttribute('aria-label', 'Slide navigation');
+    strip = document.createElement('div');
+    strip.className = 'sld-rail-in';
+    rail.appendChild(strip);
+
+    slides.forEach((el, i) => {
+      const meta = info(el, i);
+      const a = document.createElement('a');
+      a.href = '#' + el.id;
+      a.dataset.target = el.id;
+      const b = document.createElement('b');
+      b.textContent = meta.num;
+      a.appendChild(b);
+      if (meta.name) {
+        const span = document.createElement('span');
+        span.textContent = meta.name;
+        a.appendChild(span);
+        a.title = meta.num + ' \u2014 ' + meta.name;
+        a.setAttribute('aria-label', 'Go to slide ' + meta.num + ': ' + meta.name);
+      } else {
+        a.setAttribute('aria-label', 'Go to slide ' + meta.num);
+      }
+      strip.appendChild(a);
+    });
+
+    links = Array.prototype.slice.call(strip.children);
+    const anchorEl = document.querySelector('.progress-wrap') || document.querySelector('[data-pnav]');
+    if (anchorEl && anchorEl.parentNode) anchorEl.insertAdjacentElement('afterend', rail);
+    else document.body.insertBefore(rail, document.body.firstChild);
+  }
+
+  /* ---- 3. keep the active pill visible inside the strip ------------ */
+  function reveal(link) {
+    if (!link) return;
+    const sr = strip.getBoundingClientRect();
+    const lr = link.getBoundingClientRect();
+    const pad = 14;
+    let dx = 0;
+    if (lr.left < sr.left + pad) dx = lr.left - sr.left - pad;
+    else if (lr.right > sr.right - pad) dx = lr.right - sr.right + pad;
+    if (Math.abs(dx) < 1) return;
+    if (typeof strip.scrollBy === 'function') strip.scrollBy({ left: dx, behavior: motion });
+    else strip.scrollLeft += dx;
+  }
+
+  /* ---- 4. which slide owns the reference line right now? ----------- */
+  function currentIndex() {
+    const vh = window.innerHeight || document.documentElement.clientHeight;
+    const sr = strip.getBoundingClientRect();
+    if (!sr.height) return 0;                      // layout not ready yet
+    const top = Math.min(Math.max(sr.bottom, 0), vh);
+    const line = top + (vh - top) * 0.34;          // a third of the way down
+    for (let i = 0; i < slides.length; i++) {
+      if (slides[i].getBoundingClientRect().bottom > line) return i;
+    }
+    return slides.length - 1;                      // scrolled past everything
+  }
+
+  /* ---- 5. publish the change --------------------------------------- */
+  let current = -1;
+  function setActive(i, force) {
+    if (i < 0) i = 0;
+    if (i > slides.length - 1) i = slides.length - 1;
+    if (i === current) { if (force) reveal(links[i]); return; }
+    current = i;
+    const el = slides[i];
+    links.forEach((a, k) => {
+      const on = k === i;
+      a.classList.toggle('is-active', on);
+      a.classList.toggle('active', on);        // MBG styles `.toc a.active`
+      if (on) a.setAttribute('aria-current', 'true');
+      else a.removeAttribute('aria-current');
+    });
+    reveal(links[i]);
+    window.dispatchEvent(new CustomEvent('slide-rail:change', { detail: { index: i, id: el.id, slide: el } }));
+  }
+
+  let queued = false;
+  function onScroll() {
+    if (queued) return;
+    queued = true;
+    window.requestAnimationFrame(() => { queued = false; setActive(currentIndex(), true); });
+  }
+
+  // capture: true also catches scrolls from an inner container
+  // (the Medical deck becomes its own scroller on phones)
+  window.addEventListener('scroll', onScroll, { capture: true, passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+
+  /* ---- 6. jumping --------------------------------------------------- */
+  strip.addEventListener('click', (e) => {
+    const a = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
+    if (!a) return;
+    const i = links.indexOf(a);
+    if (i < 0) return;
+    e.preventDefault();
+    const el = slides[i];
+    el.scrollIntoView({ behavior: motion, block: 'start' });
+    setActive(i, true);
+    if (history.replaceState) history.replaceState(null, '', '#' + el.id);
+  });
+
+  strip.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    const i = links.indexOf(document.activeElement);
+    if (i < 0) return;
+    e.preventDefault();
+    const n = e.key === 'ArrowRight' ? Math.min(links.length - 1, i + 1) : Math.max(0, i - 1);
+    links[n].focus();
+    reveal(links[n]);
+  });
+
+  /* ---- 7. first paint ---------------------------------------------- */
+  function firstPaint() {
+    const hashIdx = slides.findIndex((s) => '#' + s.id === window.location.hash);
+    setActive(hashIdx >= 0 ? hashIdx : currentIndex(), true);
+  }
+  // a frame out, so the browser has laid the slides out before we measure
+  window.requestAnimationFrame(firstPaint);
+  // ...and again once webfonts land, since they can shift the strip
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(firstPaint).catch(() => {});
+  window.setTimeout(firstPaint, 400);
+})();
+
 </script>
 </body>
 </html>
